@@ -118,10 +118,10 @@ class Product extends Model
         }
 
         if ($this->price_min === $this->price_max) {
-            return '$' . number_format($this->price_min / 100);
+            return '$' . number_format($this->price_min);
         }
 
-        return '$' . number_format($this->price_min / 100) . ' 起';
+        return '$' . number_format($this->price_min) . ' 起';
     }
 
     /**

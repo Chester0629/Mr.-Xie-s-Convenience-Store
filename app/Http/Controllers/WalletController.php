@@ -39,8 +39,8 @@ class WalletController extends Controller
     public function deposit(DepositRequest $request): JsonResponse
     {
         $user = $request->user();
-        // Frontend sends dollars, we convert to cents using bcmul for precision
-        $amount = (int) bcmul((string) $request->input('amount'), '100', 0);
+        // Amount is in TWD (Taiwan Dollars) - no cent conversion needed
+        $amount = (int) $request->input('amount');
         $description = $request->input('description', 'Manual Deposit');
 
         try {

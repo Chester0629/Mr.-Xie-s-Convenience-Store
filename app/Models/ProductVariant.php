@@ -37,7 +37,6 @@ class ProductVariant extends Model
         'stock',
         'options',
         'options_text',
-        'options_hash',
         'image',
         'is_default',
         'is_active',
@@ -55,14 +54,12 @@ class ProductVariant extends Model
     /**
      * Boot the model.
      */
+    /**
+     * Boot the model.
+     */
     protected static function boot(): void
     {
         parent::boot();
-
-        // Auto-generate options_hash before saving
-        static::saving(function (ProductVariant $variant) {
-            $variant->options_hash = self::generateOptionsHash($variant->options);
-        });
 
         // Update product price cache after variant changes
         static::saved(function (ProductVariant $variant) {
@@ -105,7 +102,7 @@ class ProductVariant extends Model
      */
     public function getFormattedPriceAttribute(): string
     {
-        return '$' . number_format($this->price / 100);
+        return '$' . number_format($this->price);
     }
 
     /**
