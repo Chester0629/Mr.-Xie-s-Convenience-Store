@@ -12,7 +12,8 @@ class UserController extends Controller
 {
     public function index(Request $request)
     {
-        $query = User::withCount('orders')
+        $query = User::with('memberLevel')
+            ->withCount('orders')
             ->withSum(['orders' => function ($query) {
                 $query->where('status', '!=', 'cancelled');
             }], 'total_amount');

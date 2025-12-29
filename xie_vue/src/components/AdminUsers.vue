@@ -30,7 +30,7 @@
             <option value="">全部等級</option>
             <option value="normal">一般會員</option>
             <option value="vip">VIP 會員</option>
-            <option value="vvip">VVIP 大戶</option>
+            <option value="platinum">白金會員</option>
           </select>
         </div>
 
@@ -84,8 +84,8 @@
               <span class="font-bold text-gray-700 dark:text-stone-100">${{ formatPrice(user.balance || 0) }}</span>
             </td>
             <td class="px-6 py-4 text-center">
-              <span :class="getLevelBadgeClass(getUserLevel(user.orders_sum_total_amount))">
-                {{ getUserLevel(user.orders_sum_total_amount) }}
+              <span :class="getLevelBadgeClass(user.member_level?.slug || 'normal')">
+                {{ user.member_level?.name || '一般會員' }}
               </span>
             </td>
             <td class="px-6 py-4 text-center">
@@ -203,13 +203,13 @@ export default {
     },
     getUserLevel (totalAmount) {
       const amount = Number(totalAmount) || 0
-      if (amount >= 100000) return 'VVIP'
+      if (amount >= 100000) return '白金會員'
       if (amount >= 10000) return 'VIP'
       return '一般'
     },
-    getLevelBadgeClass (level) {
-      if (level === 'VVIP') return 'bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400 px-2 py-1 rounded text-xs font-bold border border-purple-200 dark:border-purple-800'
-      if (level === 'VIP') return 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-600 dark:text-yellow-400 px-2 py-1 rounded text-xs font-bold border border-yellow-200 dark:border-yellow-800'
+    getLevelBadgeClass (levelSlug) {
+      if (levelSlug === 'platinum') return 'bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400 px-2 py-1 rounded text-xs font-bold border border-purple-200 dark:border-purple-800'
+      if (levelSlug === 'vip') return 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-600 dark:text-yellow-400 px-2 py-1 rounded text-xs font-bold border border-yellow-200 dark:border-yellow-800'
       return 'bg-gray-100 dark:bg-slate-700 text-gray-600 dark:text-stone-400 px-2 py-1 rounded text-xs font-bold border border-gray-200 dark:border-slate-600'
     },
     getRoleBadgeClass (role) {
