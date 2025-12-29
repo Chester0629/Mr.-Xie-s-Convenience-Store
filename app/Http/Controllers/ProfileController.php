@@ -28,8 +28,18 @@ class ProfileController extends Controller
             'password' => 'nullable|string|min:6',
         ]);
 
+        // Prepare update data
+        $updateData = $request->only(['name', 'phone', 'gender']);
+
+        // Handle birthday separately to avoid timezone issues
+        // Store as date string (YYYY-MM-DD) without time component
+        if ($request->has('birthday') && $request->birthday) {
+            // Extract just the date portion to avoid timezone conversion
+            $updateData['birthday'] = date('Y-m-d', strtotime($request->birthday));
+        }
+
         // Update User Basic Info
-        $user->update($request->only(['name', 'phone', 'birthday', 'gender']));
+        $user->update($updateData);
 
         // Handle Password Change
         if ($request->filled('password')) {
