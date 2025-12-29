@@ -121,11 +121,11 @@
 
           <div class="grid grid-cols-3 gap-4 mb-4">
             <div>
-              <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">原價</label>
+              <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">統一價格</label>
               <div class="flex items-center">
                 <span class="text-gray-500 mr-2">NT$</span>
                 <input 
-                  v-model.number="bulkOriginalPrice"
+                  v-model.number="bulkPrice"
                   type="number" 
                   class="flex-1 px-3 py-2 border border-gray-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-gray-900 dark:text-white"
                   placeholder="0"
@@ -133,11 +133,11 @@
               </div>
             </div>
             <div>
-              <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">統一價格</label>
+              <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">原價</label>
               <div class="flex items-center">
                 <span class="text-gray-500 mr-2">NT$</span>
                 <input 
-                  v-model.number="bulkPrice"
+                  v-model.number="bulkOriginalPrice"
                   type="number" 
                   class="flex-1 px-3 py-2 border border-gray-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-gray-900 dark:text-white"
                   placeholder="0"
