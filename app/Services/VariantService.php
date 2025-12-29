@@ -132,8 +132,9 @@ class VariantService
         $createdVariants = collect();
 
         DB::transaction(function () use ($product, $combinations, $basePrice, $baseStock, $originalPrice, $skuPrefix, &$createdVariants) {
-            // Get the highest existing SKU number for this product
-            $existingSkus = ProductVariant::where('product_id', $product->id)
+            // Get the highest existing SKU number for this product (including deleted)
+            $existingSkus = ProductVariant::withTrashed()
+                ->where('product_id', $product->id)
                 ->pluck('sku')
                 ->toArray();
 
@@ -150,13 +151,27 @@ class VariantService
                 $options = $this->buildOptionsFromCombination($combo);
                 $optionsText = $this->buildOptionsTextFromCombination($combo);
 
-                // Check if variant with same options already exists
+                // Check if variant with same options already exists (including deleted)
                 $existingHash = ProductVariant::generateOptionsHash($options);
-                $exists = ProductVariant::where('product_id', $product->id)
+                $existingVariant = ProductVariant::withTrashed()
+                    ->where('product_id', $product->id)
                     ->where('options_hash', $existingHash)
-                    ->exists();
+                    ->first();
 
-                if (!$exists) {
+                if ($existingVariant) {
+                    if ($existingVariant->trashed()) {
+                        $existingVariant->restore();
+                        $updateData = [
+                            'price' => $basePrice,
+                            'stock' => $baseStock,
+                        ];
+                        if ($originalPrice !== null && $originalPrice > 0) {
+                            $updateData['original_price'] = $originalPrice;
+                        }
+                        $existingVariant->update($updateData);
+                        $createdVariants->push($existingVariant);
+                    }
+                } else {
                     $skuCounter++;
                     $sku = $skuPrefix . '-' . str_pad($skuCounter, 3, '0', STR_PAD_LEFT);
 
