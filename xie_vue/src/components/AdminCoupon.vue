@@ -59,8 +59,8 @@ function openEditModal (coupon) {
   isEditing.value = true
   form.value = {
     ...coupon,
-    discount_amount: (coupon.type === 'fixed') ? coupon.discount_amount / 100 : coupon.discount_amount,
-    limit_price: coupon.limit_price ? coupon.limit_price / 100 : 0,
+    discount_amount: coupon.discount_amount,
+    limit_price: coupon.limit_price || 0,
     starts_at: formatDate(coupon.starts_at),
     ends_at: formatDate(coupon.ends_at)
   }
@@ -70,12 +70,7 @@ function openEditModal (coupon) {
 async function saveCoupon () {
   try {
     const payload = { ...form.value }
-    if (payload.type === 'fixed') {
-        payload.discount_amount = Math.round(payload.discount_amount * 100)
-    }
-    if (payload.limit_price) {
-        payload.limit_price = Math.round(payload.limit_price * 100)
-    }
+    // No conversion needed - store prices directly in TWD
 
     if (isEditing.value) {
       await api.put(`/admin/coupons/${form.value.id}`, payload)

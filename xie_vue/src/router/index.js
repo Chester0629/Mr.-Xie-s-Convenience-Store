@@ -26,7 +26,8 @@ const routes = [
   {
     path: '/profile',
     name: 'profile',
-    component: ProfileView
+    component: ProfileView,
+    meta: { requiresAuth: true }
   },
   {
     path: '/verify-email',

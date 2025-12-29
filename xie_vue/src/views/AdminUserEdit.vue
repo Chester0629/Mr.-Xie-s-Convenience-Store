@@ -412,14 +412,16 @@ export default {
           status: user.status || 'active',
           memo: user.memo || '',
           newsletter: user.newsletter !== undefined ? user.newsletter : true,
-          member_level: user.member_level?.slug || user.member_level || 'normal',
+          member_level: (typeof user.member_level === 'object' && user.member_level !== null) 
+            ? (user.member_level.slug || 'normal') 
+            : (user.member_level || 'normal'),
           is_level_locked: !!user.is_level_locked,
           password: '',
           password_confirmation: ''
         }
         // Set Wallet & Order Data
         this.balance = user.balance || 0
-        this.memberLevelData = user.member_level || null
+        this.memberLevelData = (typeof user.member_level === 'object') ? user.member_level : null
         this.transactions = user.wallet_transactions || []
         this.orders = user.orders || []
         // Helper to safely access aggregates

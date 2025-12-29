@@ -154,7 +154,9 @@ export default {
     isLoggedIn: {
       immediate: true,
       handler (val) {
-        if (!val) {
+        // Only redirect to login if auth is initialized and user is not logged in
+        // This prevents redirect during page refresh when auth is still loading
+        if (this.authStore.initialized && !val) {
           this.$router.replace('/login')
         }
       }
@@ -225,7 +227,8 @@ export default {
       this.toast.info('已登出')
     },
     handleProfileUpdated (updatedUser) {
-      this.user = updatedUser
+      // Update the authStore's user data to reflect changes
+      this.authStore.user = updatedUser
       this.currentView = 'dashboard'
     },
     onAvatarChange (file) {

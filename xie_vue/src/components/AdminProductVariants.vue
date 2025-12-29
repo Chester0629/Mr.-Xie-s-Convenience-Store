@@ -228,16 +228,16 @@
                 <td class="py-3 px-2 text-gray-900 dark:text-white">{{ variant.options_text }}</td>
                 <td class="py-3 px-2">
                   <input 
-                    :value="variant.price / 100"
-                    @change="updateVariantField(variant.id, 'price', $event.target.value * 100)"
+                    :value="variant.price"
+                    @change="updateVariantField(variant.id, 'price', parseInt($event.target.value))"
                     type="number" 
                     class="w-24 px-2 py-1 border border-gray-300 dark:border-slate-600 rounded bg-white dark:bg-slate-700 text-gray-900 dark:text-white text-sm"
                   >
                 </td>
                 <td class="py-3 px-2">
                   <input 
-                    :value="variant.original_price ? variant.original_price / 100 : ''"
-                    @change="updateVariantField(variant.id, 'original_price', $event.target.value ? $event.target.value * 100 : null)"
+                    :value="variant.original_price || ''"
+                    @change="updateVariantField(variant.id, 'original_price', $event.target.value ? parseInt($event.target.value) : null)"
                     type="number" 
                     placeholder="-"
                     class="w-24 px-2 py-1 border border-gray-300 dark:border-slate-600 rounded bg-white dark:bg-slate-700 text-gray-900 dark:text-white text-sm"
@@ -431,7 +431,7 @@ export default {
       this.generating = true
       try {
         const res = await api.post(`/admin/products/${this.productId}/variants/bulk-generate`, {
-          base_price: Math.round(this.bulkPrice * 100), // Convert to cents
+          base_price: Math.round(this.bulkPrice),
           base_stock: this.bulkStock
         })
         this.toast.success(res.data.message)
@@ -494,9 +494,9 @@ export default {
       if (!this.bulkPriceUpdate) return
       try {
         await api.put(`/admin/products/${this.productId}/variants/bulk-price`, {
-          price: Math.round(this.bulkPriceUpdate * 100)
+          price: Math.round(this.bulkPriceUpdate)
         })
-        this.variants.forEach(v => { v.price = Math.round(this.bulkPriceUpdate * 100) })
+        this.variants.forEach(v => { v.price = Math.round(this.bulkPriceUpdate) })
         this.showBulkPrice = false
         this.toast.success('價格已更新')
       } catch (e) {
