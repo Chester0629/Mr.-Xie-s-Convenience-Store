@@ -192,7 +192,7 @@
                                                 <select v-model="form.member_level" class="w-full border border-gray-300 rounded px-4 py-2 focus:outline-none focus-border-xieOrange">
                                                     <option value="normal">一般會員</option>
                                                     <option value="vip">VIP 會員</option>
-                                                    <option value="vvip">VVIP 大戶</option>
+                                                    <option value="platinum">白金會員</option>
                                                 </select>
                                                 <label class="flex items-center gap-1 cursor-pointer whitespace-nowrap">
                                                     <input type="checkbox" v-model="form.is_level_locked" class="text-xieOrange rounded focus:ring-xieOrange">
@@ -379,7 +379,7 @@ export default {
       const levelMap = {
         normal: '一般會員',
         vip: 'VIP 會員',
-        vvip: 'VVIP 大戶'
+        platinum: '白金會員'
       }
       return levelMap[this.form.member_level] || '一般會員'
     },
@@ -388,7 +388,7 @@ export default {
       const classMap = {
         normal: 'bg-gray-500',
         vip: 'bg-blue-600',
-        vvip: 'bg-gradient-to-r from-amber-500 to-orange-600'
+        platinum: 'bg-gradient-to-r from-amber-500 to-orange-600'
       }
       return classMap[slug] || 'bg-gray-500'
     }
