@@ -174,6 +174,7 @@ class VariantService
                         'stock' => $baseStock,
                         'options' => $options,
                         'options_text' => $optionsText,
+                        'options_hash' => $existingHash,
                         'is_default' => $createdVariants->isEmpty() && !$product->variants()->where('is_default', true)->exists(),
                     ];
 
