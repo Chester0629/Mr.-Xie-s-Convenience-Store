@@ -331,6 +331,13 @@ export default {
       this.walletBalance = data.balance
       this.showTopUpModal = false
       this.toast.success('儲值成功！')
+      
+      // Sync balance to authStore so DashboardStats updates
+      if (this.authStore) {
+        this.authStore.refreshBalance()
+      }
+      // Emit event to parent to refresh DashboardStats
+      this.$emit('order-updated')
     },
     async confirmPayment () {
       if (!this.paymentOrder || !this.isBalanceSufficient) return
