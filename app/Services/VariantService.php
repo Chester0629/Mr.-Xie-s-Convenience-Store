@@ -116,6 +116,7 @@ class VariantService
      * @param array $combinations Combinations from generateCombinations()
      * @param int $basePrice Base price in cents
      * @param int $baseStock Base stock quantity
+     * @param int|null $originalPrice Original price in cents
      * @param string|null $skuPrefix SKU prefix (defaults to product ID)
      * @return Collection Created variants
      */
@@ -124,12 +125,13 @@ class VariantService
         array $combinations,
         int $basePrice,
         int $baseStock = 0,
+        ?int $originalPrice = null,
         ?string $skuPrefix = null
     ): Collection {
         $skuPrefix = $skuPrefix ?? 'P' . str_pad($product->id, 4, '0', STR_PAD_LEFT);
         $createdVariants = collect();
 
-        DB::transaction(function () use ($product, $combinations, $basePrice, $baseStock, $skuPrefix, &$createdVariants) {
+        DB::transaction(function () use ($product, $combinations, $basePrice, $baseStock, $originalPrice, $skuPrefix, &$createdVariants) {
             // Get the highest existing SKU number for this product
             $existingSkus = ProductVariant::where('product_id', $product->id)
                 ->pluck('sku')
@@ -137,7 +139,7 @@ class VariantService
 
             $maxSkuNumber = 0;
             foreach ($existingSkus as $sku) {
-                if (preg_match('/-(\d+)$/', $sku, $matches)) {
+                if (preg_match('/-(\\d+)$/', $sku, $matches)) {
                     $maxSkuNumber = max($maxSkuNumber, (int) $matches[1]);
                 }
             }
@@ -165,7 +167,7 @@ class VariantService
                     }
                     $existingSkus[] = $sku;
 
-                    $variant = ProductVariant::create([
+                    $variantData = [
                         'product_id' => $product->id,
                         'sku' => $sku,
                         'price' => $basePrice,
@@ -173,7 +175,13 @@ class VariantService
                         'options' => $options,
                         'options_text' => $optionsText,
                         'is_default' => $createdVariants->isEmpty() && !$product->variants()->where('is_default', true)->exists(),
-                    ]);
+                    ];
+
+                    if ($originalPrice !== null && $originalPrice > 0) {
+                        $variantData['original_price'] = $originalPrice;
+                    }
+
+                    $variant = ProductVariant::create($variantData);
                     $createdVariants->push($variant);
                 }
             }

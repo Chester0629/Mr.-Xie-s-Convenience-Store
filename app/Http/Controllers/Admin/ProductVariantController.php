@@ -241,6 +241,7 @@ class ProductVariantController extends Controller
     public function bulkGenerate(Request $request, Product $product): JsonResponse
     {
         $validated = $request->validate([
+            'original_price' => 'nullable|integer|min:0',
             'base_price' => 'required|integer|min:0',
             'base_stock' => 'required|integer|min:0',
         ]);
@@ -255,7 +256,8 @@ class ProductVariantController extends Controller
             $product,
             $combinations,
             $validated['base_price'],
-            $validated['base_stock']
+            $validated['base_stock'],
+            $validated['original_price'] ?? null
         );
 
         return response()->json([
