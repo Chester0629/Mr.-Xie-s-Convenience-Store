@@ -75,7 +75,7 @@ class User extends Authenticatable implements MustVerifyEmail
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
-            'birthday' => 'date',
+            // birthday is stored as plain string (Y-m-d) to avoid timezone issues
             'is_level_locked' => 'boolean',
             'last_login_at' => 'datetime',
         ];
