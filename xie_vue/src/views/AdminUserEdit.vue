@@ -321,7 +321,6 @@
 <script>
 import api from '../services/api'
 import { useAuthStore } from '@/stores/auth'
-import { useAuthStore } from '@/stores/auth'
 import { useToast } from 'vue-toastification'
 import taiwanDistricts from '../assets/taiwan_districts.json'
 
@@ -366,8 +365,7 @@ export default {
         memo: '',
         member_level: 'normal',
         is_level_locked: false,
-        member_level: 'normal',
-        is_level_locked: false,
+
         newsletter: true,
         // Address fields
         city: '',
