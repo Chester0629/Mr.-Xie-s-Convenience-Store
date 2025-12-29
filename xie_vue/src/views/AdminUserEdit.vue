@@ -231,26 +231,26 @@
                                 <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
                                     <div>
                                         <label class="block text-xs font-bold text-gray-500 mb-1">縣市</label>
-                                        <select class="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus-border-xieOrange">
-                                            <option>選擇縣市</option>
-                                            <option>台北市</option>
-                                            <option>新北市</option>
+                                        <select v-model="form.city" class="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus-border-xieOrange">
+                                            <option value="" disabled>選擇縣市</option>
+                                            <option v-for="c in taiwanDistricts" :key="c.city" :value="c.city">{{ c.city }}</option>
                                         </select>
                                     </div>
                                     <div>
                                         <label class="block text-xs font-bold text-gray-500 mb-1">區域</label>
-                                        <select class="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus-border-xieOrange">
-                                            <option>選擇區域</option>
+                                        <select v-model="form.district" class="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus-border-xieOrange" :disabled="!form.city">
+                                            <option value="" disabled>選擇區域</option>
+                                            <option v-for="d in availableDistricts" :key="d.name" :value="d.name">{{ d.name }}</option>
                                         </select>
                                     </div>
                                     <div>
                                         <label class="block text-xs font-bold text-gray-500 mb-1">郵遞區號</label>
-                                        <input type="text" class="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus-border-xieOrange">
+                                        <input v-model="form.zip_code" type="text" class="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus-border-xieOrange" readonly placeholder="自動帶入">
                                     </div>
                                 </div>
                                 <div>
                                     <label class="block text-xs font-bold text-gray-500 mb-1">詳細地址</label>
-                                    <input v-model="form.address" type="text" placeholder="街道、巷弄、門牌號碼、樓層" class="w-full border border-gray-300 rounded px-4 py-2 focus:outline-none focus-border-xieOrange">
+                                    <input v-model="form.detail_address" type="text" placeholder="街道、巷弄、門牌號碼、樓層" class="w-full border border-gray-300 rounded px-4 py-2 focus:outline-none focus-border-xieOrange">
                                 </div>
                             </div>
 
@@ -321,7 +321,9 @@
 <script>
 import api from '../services/api'
 import { useAuthStore } from '@/stores/auth'
+import { useAuthStore } from '@/stores/auth'
 import { useToast } from 'vue-toastification'
+import taiwanDistricts from '../assets/taiwan_districts.json'
 
 // Import new components
 import WalletBalanceCard from '../components/admin/WalletBalanceCard.vue'
@@ -364,8 +366,16 @@ export default {
         memo: '',
         member_level: 'normal',
         is_level_locked: false,
-        newsletter: true
-      }
+        member_level: 'normal',
+        is_level_locked: false,
+        newsletter: true,
+        // Address fields
+        city: '',
+        district: '',
+        zip_code: '',
+        detail_address: ''
+      },
+      taiwanDistricts
     }
   },
   computed: {
@@ -383,6 +393,14 @@ export default {
       }
       return levelMap[this.form.member_level] || '一般會員'
     },
+    availableDistricts () {
+      if (!this.form.city) return []
+      const cityData = this.taiwanDistricts.find(c => c.city === this.form.city)
+      return cityData ? cityData.districts : []
+    },
+    fullAddress () {
+      return `${this.form.zip_code} ${this.form.city}${this.form.district}${this.form.detail_address}`
+    },
     memberLevelClass () {
       const slug = this.memberLevelData?.slug || this.form.member_level
       const classMap = {
@@ -391,6 +409,29 @@ export default {
         platinum: 'bg-gradient-to-r from-amber-500 to-orange-600'
       }
       return classMap[slug] || 'bg-gray-500'
+    }
+  },
+  watch: {
+    'form.city' (newVal) {
+      const cityData = this.taiwanDistricts.find(c => c.city === newVal)
+      if (cityData) {
+        const validDistricts = cityData.districts.map(d => d.name)
+        if (!validDistricts.includes(this.form.district)) {
+          this.form.district = ''
+          this.form.zip_code = ''
+        }
+      }
+    },
+    'form.district' (newVal) {
+      if (newVal && this.form.city) {
+        const cityData = this.taiwanDistricts.find(c => c.city === this.form.city)
+        if (cityData) {
+          const districtData = cityData.districts.find(d => d.name === newVal)
+          if (districtData) {
+            this.form.zip_code = districtData.zip
+          }
+        }
+      }
     }
   },
   created () {
@@ -417,7 +458,29 @@ export default {
             : (user.member_level || 'normal'),
           is_level_locked: !!user.is_level_locked,
           password: '',
-          password_confirmation: ''
+          password_confirmation: '',
+          // Address fields
+          city: '',
+          district: '',
+          zip_code: '',
+          detail_address: ''
+        }
+
+        // Initialize address if available
+        if (user.addresses && user.addresses.length > 0) {
+          const defaultAddr = user.addresses.find(a => a.is_default) || user.addresses[0]
+          this.form.city = defaultAddr.city || ''
+          this.form.district = defaultAddr.district || ''
+          this.form.zip_code = defaultAddr.zip_code || ''
+          this.form.detail_address = defaultAddr.detail_address || ''
+          
+          // Legacy address fallback
+          if (!this.form.detail_address && user.address) {
+            this.form.detail_address = user.address
+          }
+        } else if (user.address) {
+          // Fallback for old address format
+          this.form.detail_address = user.address
         }
         // Set Wallet & Order Data
         this.balance = user.balance || 0

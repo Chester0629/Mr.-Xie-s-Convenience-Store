@@ -76,6 +76,10 @@ class UserController extends Controller
         $request->validate([
             'email' => 'required|email|unique:users,email,' . $id,
             'name' => 'required|string',
+            'city' => 'nullable|string',
+            'district' => 'nullable|string',
+            'zip_code' => 'nullable|string',
+            'detail_address' => 'nullable|string',
         ]);
 
         $user->email = $request->email;
@@ -96,7 +100,36 @@ class UserController extends Controller
 
         $user->save();
 
-        return $user;
+        // Handle Structured Address
+        if ($request->filled('city') && $request->filled('district') && $request->filled('detail_address')) {
+            $recipientName = $request->name;
+            $phone = $request->phone ?? $user->phone;
+
+            $address = $user->addresses()->where('is_default', true)->first();
+
+            if ($address) {
+                $address->update([
+                    'city' => $request->city,
+                    'district' => $request->district,
+                    'zip_code' => $request->zip_code,
+                    'detail_address' => $request->detail_address,
+                    'recipient_name' => $recipientName,
+                    'phone' => $phone
+                ]);
+            } else {
+                $user->addresses()->create([
+                    'city' => $request->city,
+                    'district' => $request->district,
+                    'zip_code' => $request->zip_code,
+                    'detail_address' => $request->detail_address,
+                    'recipient_name' => $recipientName,
+                    'phone' => $phone,
+                    'is_default' => true
+                ]);
+            }
+        }
+
+        return $user->load('addresses');
     }
 
     public function walletTransaction(Request $request, $id, WalletService $walletService)
