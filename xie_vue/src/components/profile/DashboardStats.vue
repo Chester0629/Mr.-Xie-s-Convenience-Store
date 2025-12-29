@@ -97,6 +97,7 @@
 
 <script>
 import api from '../../services/api'
+import { useAuthStore } from '../../stores/auth'
 
 export default {
   name: 'DashboardStats',
@@ -110,6 +111,10 @@ export default {
       type: Array,
       default: () => []
     }
+  },
+  setup () {
+    const authStore = useAuthStore()
+    return { authStore }
   },
   data () {
     return {
@@ -133,6 +138,10 @@ export default {
       return this.orders
         .filter(o => o.status === 'completed' || o.status === 'shipped' || o.status === 'processing')
         .reduce((sum, o) => sum + (o.total_amount || 0), 0)
+    },
+    // Watch authStore balance reactively
+    authBalance () {
+      return this.authStore?.user?.balance
     }
   },
   watch: {
@@ -140,6 +149,14 @@ export default {
       immediate: true,
       handler (val) {
         this.animateValue('animatedBalance', val || 0)
+      }
+    },
+    // Watch authStore balance changes
+    authBalance: {
+      handler (newVal) {
+        if (newVal !== undefined && newVal !== null) {
+          this.walletBalance = newVal
+        }
       }
     },
     coupons: {
@@ -164,6 +181,10 @@ export default {
       try {
         const res = await api.get('/user/wallet')
         this.walletBalance = res.data.balance || 0
+        // Also update authStore
+        if (this.authStore?.user) {
+          this.authStore.user.balance = this.walletBalance
+        }
       } catch (e) {
         // Fallback to user.balance if wallet API fails
         this.walletBalance = this.user?.balance || 0
