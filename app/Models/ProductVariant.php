@@ -37,6 +37,7 @@ class ProductVariant extends Model
         'stock',
         'options',
         'options_text',
+        'options_hash',
         'image',
         'is_default',
         'is_active',
