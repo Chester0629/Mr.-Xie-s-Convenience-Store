@@ -231,6 +231,7 @@ import api from '../../services/api'
 import { ORDER_STATUS_LABELS, LOGISTICS_STATUS_LABELS } from '../../utils/constants'
 import { formatPrice } from '../../utils/currency'
 import { useToast } from 'vue-toastification'
+import { useAuthStore } from '../../stores/auth'
 import UserTopUpModal from './UserTopUpModal.vue'
 
 export default {
@@ -251,8 +252,6 @@ export default {
   emits: ['order-updated', 'filter-change'],
   setup () {
     const toast = useToast()
-    // Import auth store for wallet balance refresh
-    const { useAuthStore } = require('../../stores/auth')
     const authStore = useAuthStore()
     return { toast, authStore }
   },
