@@ -133,11 +133,12 @@ export default {
           startDate = new Date(today.getFullYear(), today.getMonth(), 1)
           endDate = today
           break
-        case 'quarter':
+        case 'quarter': {
           const quarter = Math.floor(today.getMonth() / 3)
           startDate = new Date(today.getFullYear(), quarter * 3, 1)
           endDate = today
           break
+        }
         case 'custom':
           if (this.customDate) {
             startDate = new Date(this.customDate)
@@ -204,4 +205,3 @@ export default {
 <style scoped>
 /* Tailwind CSS is used */
 </style>
-
