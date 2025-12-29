@@ -4,6 +4,7 @@ import api from '../services/api'
 import { useRouter } from 'vue-router'
 import { useToast } from 'vue-toastification'
 import { useCartStore } from '../stores/cart'
+import { useAuthStore } from '../stores/auth'
 import UserTopUpModal from '../components/profile/UserTopUpModal.vue'
 import InlineAddressModal from '../components/profile/InlineAddressModal.vue'
 import { formatPrice } from '../utils/currency'
@@ -12,6 +13,7 @@ import { resolveImageUrl } from '../utils/image'
 const router = useRouter()
 const toast = useToast()
 const cartStore = useCartStore()
+const authStore = useAuthStore()
 
 // Use store state
 const cartItems = computed(() => cartStore.items)
@@ -193,7 +195,10 @@ async function checkout () {
     })
     toast.success('訂單已送出！請至會員中心付款')
     
+    // Update cart and wallet balance (both local and global state)
     await cartStore.fetchCart()
+    await fetchUserWallet() // Refresh local wallet balance
+    await authStore.refreshBalance() // Refresh global auth store balance
     
     discountAmount.value = 0
     appliedCoupon.value = null

@@ -3,10 +3,39 @@
     <div class="flex justify-between items-center mb-6">
         <h2 class="text-2xl font-bold text-gray-800 dark:text-stone-100">銷售分析報表</h2>
         <div class="flex bg-white dark:bg-slate-800 rounded shadow-sm overflow-hidden border border-gray-200 dark:border-slate-700">
-            <button class="px-4 py-2 text-sm bg-xieOrange text-white font-bold">近 7 天</button>
-            <button class="px-4 py-2 text-sm text-gray-600 dark:text-stone-300 hover:bg-gray-50 dark:hover:bg-slate-700">本月</button>
-            <button class="px-4 py-2 text-sm text-gray-600 dark:text-stone-300 hover:bg-gray-50 dark:hover:bg-slate-700">本季</button>
-            <input type="date" class="border-l border-gray-200 dark:border-slate-700 px-2 text-sm text-gray-500 dark:text-stone-400 focus:outline-none bg-transparent">
+            <button 
+              @click="setDateRange('7days')"
+              :class="[
+                'px-4 py-2 text-sm font-bold transition-colors',
+                dateRange === '7days' 
+                  ? 'bg-xieOrange text-white' 
+                  : 'text-gray-600 dark:text-stone-300 hover:bg-gray-50 dark:hover:bg-slate-700'
+              ]"
+            >近 7 天</button>
+            <button 
+              @click="setDateRange('month')"
+              :class="[
+                'px-4 py-2 text-sm font-bold transition-colors',
+                dateRange === 'month' 
+                  ? 'bg-xieOrange text-white' 
+                  : 'text-gray-600 dark:text-stone-300 hover:bg-gray-50 dark:hover:bg-slate-700'
+              ]"
+            >本月</button>
+            <button 
+              @click="setDateRange('quarter')"
+              :class="[
+                'px-4 py-2 text-sm font-bold transition-colors',
+                dateRange === 'quarter' 
+                  ? 'bg-xieOrange text-white' 
+                  : 'text-gray-600 dark:text-stone-300 hover:bg-gray-50 dark:hover:bg-slate-700'
+              ]"
+            >本季</button>
+            <input 
+              type="date" 
+              v-model="customDate"
+              @change="setDateRange('custom')"
+              class="border-l border-gray-200 dark:border-slate-700 px-2 text-sm text-gray-500 dark:text-stone-400 focus:outline-none bg-transparent"
+            >
         </div>
     </div>
 
@@ -70,6 +99,8 @@ export default {
   name: 'AdminAnalytics',
   data () {
     return {
+      dateRange: '7days',
+      customDate: '',
       stats: {
         total_sales: 0,
         order_count: 0,
@@ -84,9 +115,51 @@ export default {
     this.fetchStats()
   },
   methods: {
+    setDateRange (range) {
+      this.dateRange = range
+      this.fetchStats()
+    },
+    getDateParams () {
+      const today = new Date()
+      let startDate, endDate
+      
+      switch (this.dateRange) {
+        case '7days':
+          startDate = new Date(today)
+          startDate.setDate(today.getDate() - 7)
+          endDate = today
+          break
+        case 'month':
+          startDate = new Date(today.getFullYear(), today.getMonth(), 1)
+          endDate = today
+          break
+        case 'quarter':
+          const quarter = Math.floor(today.getMonth() / 3)
+          startDate = new Date(today.getFullYear(), quarter * 3, 1)
+          endDate = today
+          break
+        case 'custom':
+          if (this.customDate) {
+            startDate = new Date(this.customDate)
+            endDate = new Date(this.customDate)
+            endDate.setHours(23, 59, 59)
+          } else {
+            return {}
+          }
+          break
+        default:
+          return {}
+      }
+      
+      return {
+        start_date: startDate.toISOString().split('T')[0],
+        end_date: endDate.toISOString().split('T')[0]
+      }
+    },
     async fetchStats () {
       try {
-        const res = await api.get('/admin/stats')
+        const params = this.getDateParams()
+        const res = await api.get('/admin/stats', { params })
         this.stats = res.data
         this.renderChart()
       } catch (e) {
@@ -131,3 +204,4 @@ export default {
 <style scoped>
 /* Tailwind CSS is used */
 </style>
+

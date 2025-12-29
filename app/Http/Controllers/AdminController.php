@@ -11,26 +11,56 @@ use Illuminate\Support\Facades\Cache;
 
 class AdminController extends Controller
 {
-    public function stats()
+    public function stats(Request $request)
     {
-        return Cache::remember('admin_stats', 60, function () {
+        $startDate = $request->get('start_date');
+        $endDate = $request->get('end_date');
+
+        // Build cache key based on date range
+        $cacheKey = 'admin_stats';
+        if ($startDate && $endDate) {
+            $cacheKey .= "_{$startDate}_{$endDate}";
+        }
+
+        return Cache::remember($cacheKey, 60, function () use ($startDate, $endDate) {
+            // Base query for orders with date filter
+            $ordersQuery = Order::whereIn('status', ['processing', 'shipped', 'completed']);
+
+            if ($startDate && $endDate) {
+                $ordersQuery->whereBetween('created_at', [
+                    $startDate . ' 00:00:00',
+                    $endDate . ' 23:59:59'
+                ]);
+            }
+
             // 1. Total Consumption (Actual Revenue)
-            $totalSales = Order::whereIn('status', ['processing', 'shipped', 'completed'])->sum('total_amount');
+            $totalSales = (clone $ordersQuery)->sum('total_amount');
 
             // 2. Counts
-            $orderCount = Order::count();
+            $orderCount = (clone $ordersQuery)->count();
             $userCount = User::where('role', 'customer')->count();
 
             // 3. Low Stock
             $lowStockProducts = Product::where('stock', '<', 10)->take(10)->get();
 
-            // 4. Recent Orders
+            // 4. Recent Orders (always show recent, not filtered)
             $recentOrders = Order::with('user')->latest()->take(5)->get();
 
-            // 5. Sales by Category (using normalized categories table)
-            $salesByCategory = DB::table('order_items')
+            // 5. Sales by Category (with date filter)
+            $salesByCategoryQuery = DB::table('order_items')
+                ->join('orders', 'order_items.order_id', '=', 'orders.id')
                 ->join('products', 'order_items.product_id', '=', 'products.id')
                 ->join('categories', 'products.category_id', '=', 'categories.id')
+                ->whereIn('orders.status', ['processing', 'shipped', 'completed']);
+
+            if ($startDate && $endDate) {
+                $salesByCategoryQuery->whereBetween('orders.created_at', [
+                    $startDate . ' 00:00:00',
+                    $endDate . ' 23:59:59'
+                ]);
+            }
+
+            $salesByCategory = $salesByCategoryQuery
                 ->select('categories.name as category', DB::raw('SUM(order_items.quantity * order_items.price) as total'))
                 ->groupBy('categories.id', 'categories.name')
                 ->get();
@@ -38,42 +68,66 @@ class AdminController extends Controller
             // 6. AOV
             $aov = $orderCount > 0 ? round($totalSales / $orderCount) : 0;
 
-            // 7. Top Products
-            $topProducts = DB::table('order_items')
+            // 7. Top Products (with date filter)
+            $topProductsQuery = DB::table('order_items')
+                ->join('orders', 'order_items.order_id', '=', 'orders.id')
                 ->join('products', 'order_items.product_id', '=', 'products.id')
+                ->whereIn('orders.status', ['processing', 'shipped', 'completed']);
+
+            if ($startDate && $endDate) {
+                $topProductsQuery->whereBetween('orders.created_at', [
+                    $startDate . ' 00:00:00',
+                    $endDate . ' 23:59:59'
+                ]);
+            }
+
+            $topProducts = $topProductsQuery
                 ->select('products.name', 'products.image', DB::raw('SUM(order_items.quantity) as total_qty'), DB::raw('SUM(order_items.quantity * order_items.price) as total_amount'))
                 ->groupBy('products.id', 'products.name', 'products.image')
                 ->orderByDesc('total_qty')
                 ->take(5)
                 ->get();
 
-            // 8. Last 7 Days Revenue Chart (Optimized)
+            // 8. Chart Data - dynamic based on date range
             $chartData = [
                 'labels' => [],
                 'values' => []
             ];
 
-            // Use DATE() to group by day. 
-            // Note: SQLite might need strftime('%Y-%m-%d', created_at), MySQL uses DATE(created_at).
-            // Assuming MySQL or compatible for this "Production" grade code. 
-            // If SQLite is used for testing, we might need a conditional or raw logic, 
-            // but the prompt implies a serious environment (Scalability). MySQL is standard.
-            $sevenDaysStats = Order::selectRaw('DATE(created_at) as date, SUM(total_amount) as total')
-                ->where('created_at', '>=', now()->subDays(6)->startOfDay())
-                ->whereIn('status', ['processing', 'shipped', 'completed'])
-                ->groupBy('date')
-                ->get()
-                ->keyBy('date'); // Collection keyed by date string
+            // Calculate chart data based on date range
+            if ($startDate && $endDate) {
+                $start = \Carbon\Carbon::parse($startDate);
+                $end = \Carbon\Carbon::parse($endDate);
+                $daysDiff = $start->diffInDays($end);
 
-            for ($i = 6; $i >= 0; $i--) {
-                $date = now()->subDays($i)->format('Y-m-d');
-                $chartData['labels'][] = now()->subDays($i)->format('m/d');
+                $chartStats = Order::selectRaw('DATE(created_at) as date, SUM(total_amount) as total')
+                    ->whereBetween('created_at', [$startDate . ' 00:00:00', $endDate . ' 23:59:59'])
+                    ->whereIn('status', ['processing', 'shipped', 'completed'])
+                    ->groupBy('date')
+                    ->get()
+                    ->keyBy('date');
 
-                // keyBy might produce '2025-12-22', so we access it directly.
-                // However, selectRaw return structure might depend on driver. 
-                // In MySQL: 'date' attribute is string 'YYYY-MM-DD'.
-                $val = isset($sevenDaysStats[$date]) ? $sevenDaysStats[$date]->total : 0;
-                $chartData['values'][] = $val;
+                for ($i = 0; $i <= $daysDiff; $i++) {
+                    $date = $start->copy()->addDays($i)->format('Y-m-d');
+                    $chartData['labels'][] = $start->copy()->addDays($i)->format('m/d');
+                    $val = isset($chartStats[$date]) ? $chartStats[$date]->total : 0;
+                    $chartData['values'][] = $val;
+                }
+            } else {
+                // Default: Last 7 days
+                $sevenDaysStats = Order::selectRaw('DATE(created_at) as date, SUM(total_amount) as total')
+                    ->where('created_at', '>=', now()->subDays(6)->startOfDay())
+                    ->whereIn('status', ['processing', 'shipped', 'completed'])
+                    ->groupBy('date')
+                    ->get()
+                    ->keyBy('date');
+
+                for ($i = 6; $i >= 0; $i--) {
+                    $date = now()->subDays($i)->format('Y-m-d');
+                    $chartData['labels'][] = now()->subDays($i)->format('m/d');
+                    $val = isset($sevenDaysStats[$date]) ? $sevenDaysStats[$date]->total : 0;
+                    $chartData['values'][] = $val;
+                }
             }
 
             return [

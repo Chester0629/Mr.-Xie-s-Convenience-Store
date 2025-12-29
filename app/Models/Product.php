@@ -58,9 +58,36 @@ class Product extends Model
         'stock' => 'integer',
     ];
 
+    /**
+     * Append image_url to JSON responses for S3 compatibility.
+     */
+    protected $appends = ['image_url'];
+
     public function store()
     {
         return $this->belongsTo(Store::class);
+    }
+
+    /**
+     * Get the full URL for the product image.
+     * Supports both local storage and S3.
+     */
+    public function getImageUrlAttribute(): ?string
+    {
+        if (!$this->image) {
+            return null;
+        }
+
+        // If already a full URL (S3 or external), return as-is
+        if (str_starts_with($this->image, 'http')) {
+            return $this->image;
+        }
+
+        // Get the configured disk
+        $disk = config('filesystems.default');
+
+        // Return the URL based on the disk
+        return \Illuminate\Support\Facades\Storage::disk($disk)->url($this->image);
     }
 
     public function category()

@@ -251,7 +251,10 @@ export default {
   emits: ['order-updated', 'filter-change'],
   setup () {
     const toast = useToast()
-    return { toast }
+    // Import auth store for wallet balance refresh
+    const { useAuthStore } = require('../../stores/auth')
+    const authStore = useAuthStore()
+    return { toast, authStore }
   },
   data () {
     return {
@@ -339,6 +342,11 @@ export default {
         this.toast.success('付款成功！')
         this.showPaymentModal = false
         this.paymentOrder = null
+        
+        // Refresh wallet balance after successful payment
+        await this.fetchWalletBalance()
+        await this.authStore.refreshBalance()
+        
         this.$emit('order-updated')
       } catch (error) {
         console.error('Payment error:', error)

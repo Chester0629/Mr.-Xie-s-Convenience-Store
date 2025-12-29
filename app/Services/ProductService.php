@@ -106,9 +106,10 @@ class ProductService
     {
         $productData = $this->prepareProductData($data, $userStoreId);
 
-        // Handle image upload
+        // Handle image upload - use configured disk (s3 in production, public locally)
         if ($image) {
-            $productData['image'] = $image->store('images', 'public');
+            $disk = config('filesystems.default');
+            $productData['image'] = $image->store('images', $disk);
         }
 
         $product = Product::create($productData);
@@ -130,13 +131,14 @@ class ProductService
         $product = Product::findOrFail($id);
         $productData = $this->prepareProductData($data, null, false);
 
-        // Handle image upload
+        // Handle image upload - use configured disk
         if ($image) {
+            $disk = config('filesystems.default');
             // Delete old image
-            if ($product->image && Storage::disk('public')->exists($product->image)) {
-                Storage::disk('public')->delete($product->image);
+            if ($product->image && Storage::disk($disk)->exists($product->image)) {
+                Storage::disk($disk)->delete($product->image);
             }
-            $productData['image'] = $image->store('images', 'public');
+            $productData['image'] = $image->store('images', $disk);
         }
 
         $product->update($productData);

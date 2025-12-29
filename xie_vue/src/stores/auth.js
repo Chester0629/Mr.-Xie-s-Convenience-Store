@@ -92,6 +92,17 @@ export const useAuthStore = defineStore('auth', {
             const response = await api.put('/profile', data)
             this.user = response.data.user || response.data
             return response
+        },
+        async refreshBalance() {
+            if (!this.token || !this.user) return
+            try {
+                const response = await api.get('/user/wallet')
+                if (this.user) {
+                    this.user.balance = response.data.balance
+                }
+            } catch (error) {
+                console.error('Refresh balance failed', error)
+            }
         }
     }
 })

@@ -40,6 +40,7 @@
 
         <div v-if="currentView === 'dashboard'">
           <DashboardStats
+            ref="dashboardStats"
             :user="user"
             :coupons="coupons"
             :orders="orders"
@@ -51,7 +52,7 @@
           v-if="currentView === 'dashboard' || currentView === 'orders'"
           :orders="orders"
           :active-tab="activeOrderTab"
-          @order-updated="fetchOrders"
+          @order-updated="handleOrderUpdated"
           @filter-change="handleOrderFilterChange"
         />
 
@@ -176,6 +177,14 @@ export default {
       }
     }
   },
+  mounted () {
+    // Refresh wallet balance when component is mounted (e.g., after order)
+    this.$nextTick(() => {
+      if (this.$refs.dashboardStats) {
+        this.$refs.dashboardStats.fetchWalletBalance()
+      }
+    })
+  },
   methods: {
     async fetchOrders (status = 'all') {
       if (!this.user) return
@@ -201,6 +210,14 @@ export default {
     handleDashboardFilter (status) {
       this.activeOrderTab = status
       this.fetchOrders(status)
+    },
+    async handleOrderUpdated () {
+      // Refresh orders
+      await this.fetchOrders()
+      // Refresh wallet balance in DashboardStats if visible
+      if (this.$refs.dashboardStats) {
+        this.$refs.dashboardStats.fetchWalletBalance()
+      }
     },
     async fetchCoupons () {
       try {
