@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Validation\ValidationException;
 
 class ProfileController extends Controller
 {
@@ -20,10 +22,29 @@ class ProfileController extends Controller
             'detail_address' => 'nullable|string',
             'recipient_name' => 'nullable|string|max:255',
             'birthday' => 'nullable|date',
+            'gender' => 'nullable|string|in:male,female,other',
+            // Password fields
+            'current_password' => 'required_with:password|string',
+            'password' => 'nullable|string|min:6',
         ]);
 
         // Update User Basic Info
-        $user->update($request->only(['name', 'phone', 'birthday']));
+        $user->update($request->only(['name', 'phone', 'birthday', 'gender']));
+
+        // Handle Password Change
+        if ($request->filled('password')) {
+            // Verify current password
+            if (!Hash::check($request->current_password, $user->password)) {
+                throw ValidationException::withMessages([
+                    'current_password' => ['目前密碼不正確'],
+                ]);
+            }
+
+            // Update to new password
+            $user->update([
+                'password' => Hash::make($request->password)
+            ]);
+        }
 
         // Handle Structured Address
         if ($request->has('city') && $request->has('district') && $request->has('detail_address')) {
