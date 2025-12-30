@@ -1,6 +1,7 @@
-# API Reference
+# Mr. Xie's Convenience Store - API Reference
 
-Base URL: 
+## Base URL
+
 - **Production / Cloud**: `https://mr-xie-s-convenience-store-main-d3awzd.laravel.cloud/api`
 - **Local Development**: `http://localhost:8000/api`
 
@@ -8,80 +9,143 @@ Base URL:
 
 ## Authentication
 
-| Method | Endpoint | Description |
-| :--- | :--- | :--- |
-| `POST` | `/register` | Register a new user |
-| `POST` | `/login` | Login and get a token |
-| `POST` | `/logout` | Logout (Requires Auth) |
-| `GET` | `/user` | Get current user info (Requires Auth) |
-| `PUT` | `/user/profile` | Update user profile (Requires Auth) |
+| Method | Endpoint | Description | Auth Required |
+| :--- | :--- | :--- | :--- |
+| `POST` | `/register` | Register a new user | No |
+| `POST` | `/login` | Login and receive API token | No |
+| `POST` | `/logout` | Logout and invalidate token | Yes |
+| `POST` | `/email/verification-notification` | Resend email verification link | Yes |
+| `POST` | `/email/verify-code` | Verify email with code | Yes |
 
-## Products & Stores
+## Public Data & Products
 
-| Method | Endpoint | Description |
-| :--- | :--- | :--- |
-| `GET` | `/products` | List all products |
-| `GET` | `/products/{id}` | Get product details |
-| `GET` | `/stores` | List all stores |
-| `GET` | `/stores/{id}` | Get store details |
-| `PUT` | `/stores/{id}` | Update store (Requires Auth/Admin) |
+| Method | Endpoint | Description | Auth Required |
+| :--- | :--- | :--- | :--- |
+| `GET` | `/products` | List products with pagination & filtering | No |
+| `GET` | `/products/{id}` | Get product details | No |
+| `GET` | `/products/{id}/reviews` | Get reviews for a product | No |
+| `GET` | `/categories` | List all categories | No |
+| `GET` | `/stores` | List store locations | No |
+| `GET` | `/stores/{id}` | Get store details | No |
+| `GET` | `/settings` | Global settings (carousel, etc.) | No |
 
-## Cart (Requires Auth)
+## User Profile & Wallet
 
-| Method | Endpoint | Description |
-| :--- | :--- | :--- |
-| `GET` | `/cart` | Get current user's cart |
-| `POST` | `/cart/items` | Add item to cart |
-| `PUT` | `/cart/items/{itemId}` | Update cart item quantity |
-| `DELETE` | `/cart/items/{itemId}` | Remove item from cart |
+| Method | Endpoint | Description | Auth Required |
+| :--- | :--- | :--- | :--- |
+| `GET` | `/user` | Get current user info | Yes |
+| `PUT` | `/user/profile` | Update profile info (name, phone) | Yes |
+| `PUT` | `/profile` | Update address/shipping info | Yes |
+| `GET` | `/user/wallet` | Get wallet balance and transaction history | Yes |
+| `POST` | `/user/wallet/deposit` | Deposit funds into wallet | Yes |
+| `GET` | `/favorites` | List favorite products | Yes |
+| `POST` | `/favorites` | Add product to favorites | Yes |
+| `DELETE` | `/favorites/{productId}` | Remove product from favorites | Yes |
 
-## Orders (Requires Auth)
+## Shopping Cart
 
-| Method | Endpoint | Description |
-| :--- | :--- | :--- |
-| `GET` | `/orders` | List user's orders |
-| `POST` | `/orders` | Create a new order |
-| `GET` | `/orders/{order}` | Get order details |
-| `POST` | `/coupons/check` | Check coupon validity |
-| `POST` | `/orders/{id}/pay` | Pay for an order |
+| Method | Endpoint | Description | Auth Required |
+| :--- | :--- | :--- | :--- |
+| `GET` | `/cart` | Get current user's cart | Yes |
+| `POST` | `/cart/items` | Add item to cart | Yes |
+| `PUT` | `/cart/items/{itemId}` | Update cart item quantity | Yes |
+| `DELETE` | `/cart/items/{itemId}` | Remove item from cart | Yes |
 
-## Wallet (Requires Auth)
+## Orders
 
-| Method | Endpoint | Description |
-| :--- | :--- | :--- |
-| `GET` | `/user/wallet` | Get wallet balance and transactions |
-| `POST` | `/user/wallet/deposit` | Deposit funds (Mock/Request) |
+| Method | Endpoint | Description | Auth Required |
+| :--- | :--- | :--- | :--- |
+| `GET` | `/orders` | List user's orders | Yes |
+| `POST` | `/orders` | Create a new order | Yes |
+| `GET` | `/orders/{id}` | Get order details | Yes |
+| `POST` | `/orders/{order}/pay` | Pay for an order | Yes |
+| `POST` | `/orders/{order}/refund` | Request a refund | Yes |
 
-## Admin (Requires Auth & Admin Role)
+## Coupons
 
-| Method | Endpoint | Description |
-| :--- | :--- | :--- |
-| `GET` | `/admin/stats` | Get dashboard statistics |
-| `GET` | `/admin/inventory-report` | Get inventory report |
-| `GET` | `/admin/users` | List all users |
-| `POST` | `/admin/users` | Create a new user |
-| `GET` | `/admin/users/{id}` | Get user details |
-| `PUT` | `/admin/users/{id}` | Update user details |
-| `POST` | `/admin/users/{id}/wallet/transaction` | Admin Modifies Wallet (Deposit/Withdraw) |
-| `GET` | `/admin/orders` | List all orders (paginated) |
-| `GET` | `/admin/orders/{id}` | Get items for a single order |
-| `POST` | `/admin/orders/{order}/refund` | Refund an order |
-| `PUT` | `/admin/orders/{order}/status` | Update order status |
-| `PUT` | `/admin/orders/{order}/logistics` | Update logistics number |
-| `GET` | `/admin/products` | List all products (paginated) |
-| `POST` | `/admin/products` | Create product |
-| `PUT` | `/admin/products/{id}` | Update product |
-| `DELETE` | `/admin/products/{id}` | Delete product |
-| `GET` | `/admin/categories` | List all categories with product counts |
-| `POST` | `/admin/categories` | Create category |
-| `PUT` | `/admin/categories/{id}` | Update category |
-| `DELETE` | `/admin/categories/{id}` | Delete category (products become uncategorized) |
-| `POST` | `/admin/categories/{id}/reassign` | Move products to another category then delete |
-| `GET` | `/admin/coupons` | List all coupons |
-| `POST` | `/admin/coupons` | Create coupon |
-| `PUT` | `/admin/coupons/{id}` | Update coupon |
-| `DELETE` | `/admin/coupons/{id}` | Delete coupon |
-| `PUT` | `/admin/stores/{id}` | Update store settings |
+| Method | Endpoint | Description | Auth Required |
+| :--- | :--- | :--- | :--- |
+| `GET` | `/coupons` | List available coupons | Yes |
+| `POST` | `/coupons/check` | Check coupon validity | Yes |
+
+## Reviews
+
+| Method | Endpoint | Description | Auth Required |
+| :--- | :--- | :--- | :--- |
+| `POST` | `/products/{id}/reviews` | Create a review | Yes |
+| `GET` | `/products/{id}/reviews/can-review` | Check if user can review product | Yes |
+| `DELETE` | `/reviews/{id}` | Delete a review | Yes |
+
+## Admin - Dashboard & General
+
+| Method | Endpoint | Description | Access |
+| :--- | :--- | :--- | :--- |
+| `GET` | `/admin/stats` | Dashboard statistics | Staff/Admin |
+| `GET` | `/admin/inventory-report` | Low stock report | Staff/Admin |
+
+## Admin - Product Management
+
+| Method | Endpoint | Description | Access |
+| :--- | :--- | :--- | :--- |
+| `GET` | `/admin/products` | Admin product list | Staff/Admin |
+| `POST` | `/admin/products` | Create product | Staff/Admin |
+| `PUT` | `/admin/products/{id}` | Update product | Staff/Admin |
+| `DELETE` | `/admin/products/{id}` | Delete product | Staff/Admin |
+
+## Admin - Product Variants & Attributes
+
+| Method | Endpoint | Description | Access |
+| :--- | :--- | :--- | :--- |
+| `GET` | `/admin/products/{id}/variants` | List variants for product | Staff/Admin |
+| `POST` | `/admin/products/{id}/variants` | Create single variant | Staff/Admin |
+| `PUT` | `/admin/products/{id}/variants/{variant}` | Update variant | Staff/Admin |
+| `DELETE` | `/admin/products/{id}/variants/{variant}` | Delete variant | Staff/Admin |
+| `POST` | `/admin/products/{id}/variants/bulk-generate` | Bulk generate variants | Staff/Admin |
+| `PUT` | `/admin/products/{id}/variants/bulk-price` | Bulk update prices | Staff/Admin |
+| `PUT` | `/admin/products/{id}/variants/bulk-stock` | Bulk update stock | Staff/Admin |
+| `POST` | `/admin/products/{id}/attributes` | Add attribute (Color/Size) | Staff/Admin |
+| `PUT` | `/admin/attributes/{attribute}` | Update attribute | Staff/Admin |
+| `DELETE` | `/admin/attributes/{attribute}` | Delete attribute | Staff/Admin |
+| `POST` | `/admin/attributes/{attribute}/values` | Add attribute value | Staff/Admin |
+
+## Admin - Orders
+
+| Method | Endpoint | Description | Access |
+| :--- | :--- | :--- | :--- |
+| `GET` | `/admin/orders` | List all orders | Staff/Admin |
+| `GET` | `/admin/orders/{id}` | Get order details | Staff/Admin |
+| `PUT` | `/admin/orders/{order}/status` | Update order status | Staff/Admin |
+| `PUT` | `/admin/orders/{order}/logistics` | Update tracking number | Staff/Admin |
+| `POST` | `/admin/orders/{order}/refund` | Process refund | Staff/Admin |
+
+## Admin - User Management (Restricted)
+
+| Method | Endpoint | Description | Access |
+| :--- | :--- | :--- | :--- |
+| `GET` | `/admin/users` | List users | Admin Only |
+| `POST` | `/admin/users` | Create user | Admin Only |
+| `GET` | `/admin/users/{id}` | Get user details | Admin Only |
+| `PUT` | `/admin/users/{id}` | Update user info | Admin Only |
+| `PUT` | `/admin/users/{id}/role` | Update user role (Member/Admin) | Admin Only |
+| `POST` | `/admin/users/{id}/wallet/transaction` | Adjust wallet balance | Admin Only |
+| `DELETE` | `/admin/users/{id}` | Soft delete user | Admin Only |
+| `DELETE` | `/admin/users/{id}/force` | Permanently delete user | Admin Only |
+
+## Admin - Categories & Stores (Restricted)
+
+| Method | Endpoint | Description | Access |
+| :--- | :--- | :--- | :--- |
+| `GET` | `/admin/categories` | List categories | Admin Only |
+| `POST` | `/admin/categories` | Create category | Admin Only |
+| `PUT` | `/admin/categories/{id}` | Update category | Admin Only |
+| `DELETE` | `/admin/categories/{id}` | Delete category | Admin Only |
+| `POST` | `/admin/categories/{id}/reassign` | Delete category & reassign products | Admin Only |
+| `POST` | `/admin/categories/fix-slugs` | Repair category slugs | Admin Only |
+| `GET` | `/admin/coupons` | List all coupons | Admin Only |
+| `POST` | `/admin/coupons` | Create coupon | Admin Only |
+| `PUT` | `/admin/coupons/{id}` | Update coupon | Admin Only |
+| `DELETE` | `/admin/coupons/{id}` | Delete coupon | Admin Only |
+| `PUT` | `/admin/stores/{id}` | Update store info | Admin Only |
 
 ## How to Test
 
@@ -89,12 +153,12 @@ You can use tools like **Postman**, **Insomnia**, or `curl` to test these endpoi
 
 **Example Request (Get Products):**
 ```bash
-curl -X GET https://<your-laravel-cloud-url>/api/products
+curl -X GET http://localhost:8000/api/products
 ```
 
 **Example Request (Login):**
 ```bash
-curl -X POST https://<your-laravel-cloud-url>/api/login \
+curl -X POST http://localhost:8000/api/login \
   -H "Content-Type: application/json" \
   -d '{"email": "user@example.com", "password": "password"}'
 ```

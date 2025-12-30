@@ -36,26 +36,31 @@
 
 ### 🛒 購物系統
 - 商品瀏覽、分類過濾
-- 購物車管理
-- 願望清單
+- **多規格商品支援 (顏色/尺寸)**
+- 購物車與收藏夾
+- **商品評論與評分系統**
 - 全文搜尋 (Meilisearch)
 
 ### 💰 會員與錢包
 - 會員等級制度 (一般/VIP/VVIP)
-- 電子錢包儲值
-- 等級專屬折扣
+- 電子錢包儲值與消費
+- **交易記錄追蹤**
+- **信箱驗證與安全防護**
 
 ### 📦 訂單管理
-- 完整訂單流程
-- 訂單狀態追蹤
-- 退款機制
+- 完整訂單流程 (建立/支付/發貨/完成)
+- 訂單狀態即時追蹤
+- 退款與售後機制
+- **物流單號管理**
 
 ### 🔐 管理後台
-- 商品管理 (CRUD)
-- 訂單管理
-- 會員管理
+- **權限分級 (管理員/員工)**
+- 商品與規格變體管理 (CRUD)
+- **分類管理與產品轉移**
+- 訂單與退款處理
+- 會員與錢包餘額管理
 - 優惠券系統
-- 營收報表
+- 營收報表與庫存警示
 
 ---
 
@@ -130,13 +135,16 @@ php artisan serve
 
 ## 🐳 Docker 部署
 
+詳細部署說明請參考 [deployment_guide.md](deployment_guide.md)
+
 ### 一鍵部署
 
 ```bash
 # Windows
-deploy.bat
+.\deploy.bat
 
 # Linux/macOS
+chmod +x deploy.sh
 ./deploy.sh
 ```
 
@@ -183,35 +191,19 @@ make shell       # 進入容器 shell
 
 ## 📖 API 文檔
 
-### 認證
+詳細 API 說明文件請參考 [API_REFERENCE.md](API_REFERENCE.md)
 
-```bash
-# 登入
-POST /api/login
-Content-Type: application/json
-{
-  "email": "user@example.com",
-  "password": "password"
-}
+### 核心功能概覽
 
-# 登出
-POST /api/logout
-Authorization: Bearer {token}
-```
-
-### 主要端點
-
-| Method | Endpoint | 說明 |
-|--------|----------|------|
-| GET | `/api/products` | 取得商品列表 |
-| GET | `/api/products/{id}` | 取得商品詳情 |
-| GET | `/api/categories` | 取得分類列表 |
-| GET | `/api/cart` | 取得購物車 |
-| POST | `/api/cart` | 加入購物車 |
-| POST | `/api/orders` | 建立訂單 |
-| GET | `/api/orders` | 取得訂單列表 |
-| GET | `/api/wallet/balance` | 取得錢包餘額 |
-| POST | `/api/wallet/deposit` | 錢包儲值 |
+| 模組 | 主要功能 |
+|------|----------|
+| **認證** | 註冊、登入、信箱驗證、JWT Token 管理 |
+| **商品** | 列表、搜尋、分類、詳情、評論 |
+| **購物車** | 加入、更新、移除、清空 |
+| **訂單** | 建立、支付、狀態更新、退款 |
+| **會員** | 個人資料、地址管理、收藏夾 |
+| **錢包** | 餘額查詢、儲值、交易記錄 |
+| **後台** | 商品變體、用戶管理、營收報表、庫存管理 |
 
 ---
 

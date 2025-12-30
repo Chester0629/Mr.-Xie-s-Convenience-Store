@@ -29,33 +29,58 @@ npm run build
 # The 'dist/' directory now contains the production-ready assets.
 ```
 
-## 3. Docker Deployment
-We use `docker-compose` to orchestrate services:
-*   `app`: Laravel API (PHP-FPM)
-*   `web`: Nginx (Serves API & Frontend)
-*   `db`: MySQL 8.0
-*   `redis`: Cache & Queue
-*   `meilisearch`: Search Engine
+## 3. Deployment Methods
 
-### Running in Production
+### Option A: Quick Scripts (Recommended)
+
+The project includes convenience scripts to handle building, bringing up containers, and running initial migrations.
+
+**Windows:**
+```bash
+.\deploy.bat
+```
+
+**Linux / macOS:**
+```bash
+chmod +x deploy.sh
+./deploy.sh
+```
+
+### Option B: Make Commands (If Make is installed)
+The project includes a `Makefile` for common operations.
+
+```bash
+make up-prod     # Start production environment
+make logs        # View logs
+make shell       # Enter app container
+```
+
+### Option C: Manual Docker Deployment
+If you prefer full control or need to debug:
+
 ```bash
 # Build and Start Containers (Detached mode)
-docker-compose up -d --build
+docker-compose -f docker-compose.prod.yml up -d --build
 
 # Run Migrations (First time only)
-docker-compose exec app php artisan migrate --seed
+docker-compose -f docker-compose.prod.yml exec app php artisan migrate --force --seed
 
 # Optimize Backend (Critical for speed)
-docker-compose exec app php artisan config:cache
-docker-compose exec app php artisan route:cache
-docker-compose exec app php artisan view:cache
+docker-compose -f docker-compose.prod.yml exec app php artisan config:cache
+docker-compose -f docker-compose.prod.yml exec app php artisan route:cache
+docker-compose -f docker-compose.prod.yml exec app php artisan view:cache
 ```
 
 ## 4. Verification
-1.  Visit your URL (e.g., `http://localhost:8080`).
-2.  Check API Health: `http://localhost:8080/api/settings` should return JSON.
+1.  Visit your URL (e.g., `http://localhost`).
+2.  Check API Health: `http://localhost/api/settings` should return JSON.
 3.  Test Login: Ensure you can log in as Admin.
 
 ## 5. Maintenance
 *   **Logs**: `docker-compose logs -f app`
-*   **Updates**: `git pull && docker-compose build && docker-compose up -d`
+*   **Updates**: 
+    ```bash
+    git pull
+    # Use deploy script again or:
+    docker-compose -f docker-compose.prod.yml up -d --build
+    ```
